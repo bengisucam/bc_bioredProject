@@ -202,16 +202,16 @@ def create_sentence_combination(first_list, second_list):
 
 
 if __name__ == '__main__':
-    in_data_dir = 'BC8_BioRED_Subtask1_PubTator'
-    out_data_dir = 'BC8_BioRED_Subtask1_TSV'
+    in_data_dir = 'files'
+    #out_data_dir = 'BC8_Subtask1\\data\\files\\out_files'
     in_train_pubtator_file = in_data_dir + '\\bc8_biored_task1_train.pubtator'
     in_dev_pubtator_file = in_data_dir + '\\bc8_biored_task1_val.pubtator'
 
-    if not os.path.exists(os.path.join(os.getcwd(), out_data_dir)):
-        os.makedirs(out_data_dir)
-
-    out_train_tsv_file = out_data_dir + '\\train.tsv'
-    out_dev_tsv_file = out_data_dir + '\\dev.tsv'
+    # if not os.path.exists(os.path.join(os.getcwd(), out_data_dir)):
+    #     os.makedirs(out_data_dir)
+    #
+    # out_train_tsv_file = out_data_dir + '\\train.tsv'
+    # out_dev_tsv_file = out_data_dir + '\\dev.tsv'
 
     doc_dict, entity_dict = createDocumentEntitiesAndRelations(in_pubtator_path=in_train_pubtator_file)
     normalized_doc_dict = normalizeEntityNames(entity_dict=entity_dict, doc_dict=doc_dict)
