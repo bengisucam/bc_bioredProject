@@ -144,7 +144,6 @@ def createDocumentEntitiesAndRelations(in_pubtator_path):
             entity1, entity2 = pair[0], pair[1]
             if len([rel for rel in true_relations if rel.e1_id == entity1.id and rel.e2_id == entity2.id]) != 0:
                 continue
-            # todo:
             elif len([rel for rel in true_relations if rel.e1_id == entity2.id and rel.e2_id == entity1.id]) != 0:
                 continue
             else:
