@@ -1,0 +1,5 @@
+tensorflow-gpu
+pandas
+spacy
+scispacy
+six
