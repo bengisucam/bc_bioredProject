@@ -248,7 +248,7 @@ if __name__ == '__main__':
 
         # create out file
         # out file header and data information
-        headers = ["id", "docid", "isValid", "passage"]
+        headers = ["id", "docid", "isValid", "passage"] #todo: protein1 ve protein2 taglerini ekle, passage'ın tagli halini de preprocessed sütununda tut
         data = []
         total_num_relation_sentences = 0
         total_num_true_relation_sentences = 0
