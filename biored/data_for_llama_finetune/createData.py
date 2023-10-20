@@ -234,9 +234,9 @@ if __name__ == '__main__':
     if not os.path.exists(os.path.join(os.getcwd(), out_data_dir)):
         os.makedirs(out_data_dir)
 
-    out_train_csv_file = out_data_dir + '\\train.csv'
-    out_dev_csv_file = out_data_dir + '\\dev.csv'
-    out_test_csv_file = out_data_dir + '\\test.csv'
+    out_train_csv_file = out_data_dir + '\\train.txt'
+    out_dev_csv_file = out_data_dir + '\\dev.txt'
+    out_test_csv_file = out_data_dir + '\\test.txt'
 
     in_pubtator_file_list = [in_train_pubtator_file, in_dev_pubtator_file, in_test_pubtator_file]
     out_file_list = [out_train_csv_file, out_dev_csv_file, out_test_csv_file]
@@ -244,49 +244,22 @@ if __name__ == '__main__':
 
         # process train data
         doc_dict, entity_dict = createDocumentEntitiesAndRelations(in_pubtator_path=in_pubtator_file_list[i])
-        normalized_doc_dict = normalizeEntityNames(entity_dict=entity_dict, doc_dict=doc_dict)
+        # normalized_doc_dict = normalizeEntityNames(entity_dict=entity_dict, doc_dict=doc_dict)
 
         # create out file
         # out file header and data information
-        headers = ["id", "docid", "isValid", "type", "passage"] #todo: protein1 ve protein2 taglerini ekle, passage'ın tagli halini de preprocessed sütununda tut
+        headers = ["id", "docid", "passage"] #todo: protein1 ve protein2 taglerini ekle, passage'ın tagli halini de preprocessed sütununda tut
         data = []
         total_num_relation_sentences = 0
         total_num_true_relation_sentences = 0
-        for doc_id in normalized_doc_dict:
+        for doc_id in doc_dict:
             rel_id = 0
             entities: list[Entity] = entity_dict[doc_id]
-            doc_as_sentences = tokenize_sentences(normalized_doc_dict[doc_id].text)
-            normalized_doc_dict[doc_id].text = doc_as_sentences
-            relation_pairs = normalized_doc_dict[doc_id].relation_pairs
-            for relation in relation_pairs:
-                if relation.is_relation:
-                    total_num_true_relation_sentences += 1
-                total_num_relation_sentences += 1
-                e1 = [e for e in entities if e.id == relation.e1_id][0]
-                e2 = [e for e in entities if e.id == relation.e2_id][0]
-                sentences_with_both = [s for s in doc_as_sentences if e1.name in s and e2.name in s]
-                # if there exists a intra-sentence pair, then no need to look for the inter-sentence pairs
-                if sentences_with_both:
-                    candidate_sentences = sentences_with_both
-                    # relation.candidate_sentences = sentences_with_both
-                else:
-                    sentences_with_e1 = [s for s in doc_as_sentences if e1.name in s and e2.name not in s]
-                    sentences_with_e2 = [s for s in doc_as_sentences if e2.name in s and e1.name not in s]
-                    candidate_sentences = create_sentence_combination(sentences_with_e1, sentences_with_e2)
-                    # relation.candidate_sentences = candidate_sentences
-                relation.candidate_sentences = candidate_sentences
-                # add the plain relation pair sentences into the out folder
-                data.append([rel_id, doc_id, relation.is_relation, ''.join(relation.candidate_sentences)])
-                rel_id += 1
-                # todo:  find the sdp of the candidate sentences
-        print("Total Relation Sentences: ", total_num_relation_sentences)
-        print("Total True Relation Sentences: ", total_num_true_relation_sentences)
+            data.append(doc_dict[doc_id].text)
         with open(out_file_list[i], 'w', encoding='UTF8', newline='') as f:
-            writer = csv.writer(f)
-            # write the header
-            writer.writerow(headers)
-            # write multiple rows
-            writer.writerows(data)
+            for text in data:
+                f.write(text)
+                f.write('\n')
             f.close()
 
 
