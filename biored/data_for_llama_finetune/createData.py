@@ -246,8 +246,8 @@ if __name__ == '__main__':
         doc_dict, entity_dict = createDocumentEntitiesAndRelations(in_pubtator_path=in_pubtator_file_list[i])
         # normalized_doc_dict = normalizeEntityNames(entity_dict=entity_dict, doc_dict=doc_dict)
 
-        # create out file
-        # out file header and data information
+        # create out_files file
+        # out_files file header and data information
         headers = ["id", "docid", "passage"] #todo: protein1 ve protein2 taglerini ekle, passage'ın tagli halini de preprocessed sütununda tut
         data = []
         total_num_relation_sentences = 0
