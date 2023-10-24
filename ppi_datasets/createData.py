@@ -32,29 +32,29 @@ def tag_sentence_with_protein(passage, e1_offset_list, e2_offset_list, e1_name, 
     if FIRST_E1:
         for e1_offset in e1_offset_list:
             e1_offset = [int(e1_offset[0]) + chars_to_update, int(e1_offset[1]) + chars_to_update]
-            sentence_text = passage[:e1_offset[0]] + "<PROTEIN1>" + e1_name + "<PROTEIN1>" + passage[e1_offset[1]:]
+            sentence_text = passage[:e1_offset[0]] + "[PROTEIN1] " + e1_name + " [/PROTEIN1]" + passage[e1_offset[1]:]
             # update second entity's offset
-            chars_to_update += 2 * len("<PROTEIN1>")
+            chars_to_update += len("[PROTEIN1] ") + len(" [/PROTEIN1]")
 
         for e2_offset in e2_offset_list:
             try:
                 e2_offset = [int(e2_offset[0]) + chars_to_update, int(e2_offset[1]) + chars_to_update]
-                sentence_text = sentence_text[:e2_offset[0]] + "<PROTEIN2>" + e2_name + "<PROTEIN2>" + sentence_text[e2_offset[1]:]
-                chars_to_update += 2 * len("<PROTEIN2>")
+                sentence_text = sentence_text[:e2_offset[0]] + "[PROTEIN2] " + e2_name + " [/PROTEIN2]" + sentence_text[e2_offset[1]:]
+                chars_to_update += len("[PROTEIN2] ") + len(" [/PROTEIN2]")
             except IndexError:
                 print()
     else:
         for e2_offset in e2_offset_list:
             e2_offset = [int(e2_offset[0]) + chars_to_update, int(e2_offset[1]) + chars_to_update]
-            sentence_text = passage[:int(e2_offset[0])] + "<PROTEIN2>" + e2_name + "<PROTEIN2>" + passage[int(
+            sentence_text = passage[:int(e2_offset[0])] + "[PROTEIN2] " + e2_name + " [/PROTEIN2]" + passage[int(
                 e2_offset[1]):]
             # update second entity's offset
-            chars_to_update = 2 * len("<PROTEIN2>")
+            chars_to_update = len("[PROTEIN2] ") + len(" [/PROTEIN2]")
         for e1_offset in e1_offset_list:
             e1_offset = [int(e1_offset[0]) + chars_to_update, int(e1_offset[1]) + chars_to_update]
-            sentence_text = sentence_text[:int(e1_offset[0])] + "<PROTEIN1>" + e1_name + "<PROTEIN1>" + sentence_text[int(
+            sentence_text = sentence_text[:int(e1_offset[0])] + "[PROTEIN1] " + e1_name + " [/PROTEIN1]" + sentence_text[int(
                 e1_offset[1]):]
-            chars_to_update = 2 * len("<PROTEIN1>")
+            chars_to_update = len("[PROTEIN1] ") + len(" [/PROTEIN1]")
     return sentence_text
 
 
