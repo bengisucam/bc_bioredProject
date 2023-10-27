@@ -12,7 +12,7 @@ if __name__ == '__main__':
     for split in train_val_dict.keys():
         prompts = []
         for i in list(train_val_dict[split].index.array):
-            row = train_df.iloc[i]
+            row = train_val_dict[split].iloc[i]
             sentence = row["Sentence"]
             keywords = row["Keywords"]
             question = "What is the keyword that represents the  interaction between the proteins " + row["Gene1"] + " and " + row["Gene2"] + " in the given sentence?"
