@@ -25,8 +25,8 @@ if __name__ == '__main__':
     for i in list(test_df.index.array):
         sentence = test_df.iloc[i]["Sentence"]
         keywords = test_df.iloc[i]["Keywords"]
-        question = "What is the key word that represents the  interaction between the proteins " + train_df.iloc[i][
-            "Gene1"] + " and " + train_df.iloc[i]["Gene2"] + " in the given sentence?"
+        question = "What is the key word that represents the  interaction between the proteins " + test_df.iloc[i][
+            "Gene1"] + " and " + test_df.iloc[i]["Gene2"] + " in the given sentence?"
         prompt = question + " " + sentence + " " + "Keywords: "
         prompts.append(prompt)
     test_df['Prompts'] = prompts
