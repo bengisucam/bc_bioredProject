@@ -8,9 +8,9 @@ def load_and_test(dataset, split):
     return ds.head()
 
 if __name__ == '__main__':
-    train_df = pd.read_csv("out_files/LLL-train.csv")
-    val_df = pd.read_csv("out_files/LLL-val.csv")
-    test_df = pd.read_csv("out_files/LLL-test.csv")
+    train_df = pd.read_csv("out_files_protein_tagged_byhand/LLL-train.csv")
+    val_df = pd.read_csv("out_files_protein_tagged_byhand/LLL-val.csv")
+    test_df = pd.read_csv("out_files_protein_tagged_byhand/LLL-test.csv")
 
     all_data = {
     "train" : train_df.to_dict(orient="records"),
@@ -19,11 +19,11 @@ if __name__ == '__main__':
     }
 
     for split in all_data:
-        f_name = "out_hf_files/" + split + ".jsonl"
+        f_name = "out_hf_files_tagged/" + split + ".jsonl"
         with open(f_name, "w") as f:
             for line in all_data[split]:
                 f.write(json.dumps(line) + "\n")
         f.close()
 
-    test_head = load_and_test("bengisucam/LLL_INO", split="test")
+    test_head = load_and_test("bengisucam/LLL_INO-tagged", split="test")
     print(test_head)
