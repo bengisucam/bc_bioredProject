@@ -49,16 +49,56 @@ def tag_sentence_with_protein(passage, e1_offset_list, e2_offset_list, e1_name, 
             sentence_text = passage[:int(e2_offset[0])] + "[PROTEIN2] " + e2_name + " [/PROTEIN2]" + passage[int(
                 e2_offset[1]):]
             # update second entity's offset
-            chars_to_update = len("[PROTEIN2] ") + len(" [/PROTEIN2]")
+            chars_to_update += len("[PROTEIN2] ") + len(" [/PROTEIN2]")
         for e1_offset in e1_offset_list:
             e1_offset = [int(e1_offset[0]) + chars_to_update, int(e1_offset[1]) + chars_to_update]
             sentence_text = sentence_text[:int(e1_offset[0])] + "[PROTEIN1] " + e1_name + " [/PROTEIN1]" + sentence_text[int(
                 e1_offset[1]):]
-            chars_to_update = len("[PROTEIN1] ") + len(" [/PROTEIN1]")
+            chars_to_update += len("[PROTEIN1] ") + len(" [/PROTEIN1]")
     return sentence_text
 
 
-def read_xml(folder_name, split):
+def mask_sentence_with_protein(passage, e1_offset_list, e2_offset_list, e1_name, e2_name):
+
+    UPDATE_LENGTH = len("PROTEIN1")
+
+    FIRST_E1 = True
+    if int(e1_offset_list[0][0]) > int(e2_offset_list[0][0]):
+        FIRST_E1 = False
+
+    chars_to_update = 0
+    if FIRST_E1:
+        for e1_offset in e1_offset_list:
+            e1_offset = [int(e1_offset[0]) + chars_to_update, int(e1_offset[1]) + chars_to_update]
+            sentence_text = passage.replace(passage[e1_offset[0]:e1_offset[1]], "PROTEIN1")
+            # update second entity's offset
+            old_entity_len = e1_offset[1] - e1_offset[0]
+            chars_to_update += (UPDATE_LENGTH - old_entity_len)
+
+        for e2_offset in e2_offset_list:
+            e2_offset = [int(e2_offset[0]) + chars_to_update, int(e2_offset[1]) + chars_to_update]
+            sentence_text = sentence_text.replace(sentence_text[e2_offset[0]:e2_offset[1]], "PROTEIN2")
+            # update second entity's offset
+            old_entity_len = e2_offset[1] - e2_offset[0]
+            chars_to_update += (UPDATE_LENGTH - old_entity_len)
+
+    else:
+        for e2_offset in e2_offset_list:
+            e2_offset = [int(e2_offset[0]) + chars_to_update, int(e2_offset[1]) + chars_to_update]
+            sentence_text = passage.replace(passage[e2_offset[0]:e2_offset[1]], "PROTEIN2")
+            # update second entity's offset
+            old_entity_len = e2_offset[1] - e2_offset[0]
+            chars_to_update += (UPDATE_LENGTH - old_entity_len)
+        for e1_offset in e1_offset_list:
+            e1_offset = [int(e1_offset[0]) + chars_to_update, int(e1_offset[1]) + chars_to_update]
+            sentence_text = sentence_text.replace(sentence_text[e1_offset[0]:e1_offset[1]], "PROTEIN1")
+            # update second entity's offset
+            old_entity_len = e1_offset[1] - e1_offset[0]
+            chars_to_update += (UPDATE_LENGTH - old_entity_len)
+    return sentence_text
+
+
+def read_xml(folder_name, split, is_masking):
     # Reading the data inside the xml
     file_name = folder_name + "-" + split + ".xml"
     file_path = os.path.join(os.getcwd(), folder_name + "\\" + file_name)
@@ -95,8 +135,14 @@ def read_xml(folder_name, split):
                 # protein tagging
                 e1_offsets = get_entity_offsets(all_entities_name_offsets, e1_name)
                 e2_offsets = get_entity_offsets(all_entities_name_offsets, e2_name)
-                tagged_sentence = tag_sentence_with_protein(passage=sentence.attrib["text"], e1_offset_list=e1_offsets,
-                                                            e2_offset_list=e2_offsets, e1_name=e1_name, e2_name=e2_name)
+                if is_masking:
+                    tagged_sentence = mask_sentence_with_protein(passage=sentence.attrib["text"],
+                                                                e1_offset_list=e1_offsets,
+                                                                e2_offset_list=e2_offsets, e1_name=e1_name,
+                                                                e2_name=e2_name)
+                else:
+                    tagged_sentence = tag_sentence_with_protein(passage=sentence.attrib["text"], e1_offset_list=e1_offsets,
+                                                                e2_offset_list=e2_offsets, e1_name=e1_name, e2_name=e2_name)
                 # save to df
                 df = df.append({'docId': doc.attrib["id"], 'isValid': True, 'passage': tagged_sentence,
                                 'passage_id': sentence.attrib["id"]},
@@ -112,8 +158,14 @@ def read_xml(folder_name, split):
                 # protein tagging
                 e1_offsets = get_entity_offsets(all_entities_name_offsets, e1_name)
                 e2_offsets = get_entity_offsets(all_entities_name_offsets, e2_name)
-                tagged_sentence = tag_sentence_with_protein(passage=sentence.attrib["text"], e1_offset_list=e1_offsets,
-                                                            e2_offset_list=e2_offsets, e1_name=e1_name, e2_name=e2_name)
+                if is_masking:
+                    tagged_sentence = mask_sentence_with_protein(passage=sentence.attrib["text"],
+                                                                e1_offset_list=e1_offsets,
+                                                                e2_offset_list=e2_offsets, e1_name=e1_name,
+                                                                e2_name=e2_name)
+                else:
+                    tagged_sentence = tag_sentence_with_protein(passage=sentence.attrib["text"], e1_offset_list=e1_offsets,
+                                                                e2_offset_list=e2_offsets, e1_name=e1_name, e2_name=e2_name)
                 # save to df
                 df = df.append({'docId': doc.attrib["id"], 'isValid': False, 'passage': tagged_sentence,
                                 'passage_id': sentence.attrib["id"]},
@@ -125,12 +177,24 @@ def read_xml(folder_name, split):
 if __name__ == '__main__':
 
     in_data_dir = 'files'
-    out_data_dir = 'files\\out_files'
+    masked_out_data_dir = 'files\\out_files_masked'
+    tagged_out_data_dir = 'files\\out_files'
 
-    input_file_list = ["AIMED"]  # , "IEPA","HPRD50", "BIOINFER", "AIMED"
+    input_file_list = ["LLL"]  # , "IEPA","HPRD50", "BIOINFER", "AIMED"
+    # # Create files for Protein Tagged sentences
+    # for folder_name in input_file_list:
+    #     test_data_df = read_xml(folder_name, split="test", is_masking=False)
+    #     test_data_df.to_csv(os.path.join(os.getcwd(), folder_name + "\\out_files\\" + folder_name + "-test.csv"), encoding='utf-8')
+    #
+    #     train_data_df = read_xml(folder_name, split="train", is_masking=False)
+    #     train_data_df.to_csv(os.path.join(os.getcwd(), folder_name + "\\out_files\\" + folder_name + "-train.csv"), encoding='utf-8')
+
+    # Create files for Protein Masked sentences
     for folder_name in input_file_list:
-        test_data_df = read_xml(folder_name, split="test")
-        test_data_df.to_csv(os.path.join(os.getcwd(), folder_name + "\\out_files\\" + folder_name + "-test.csv"), encoding='utf-8')
+        test_data_df = read_xml(folder_name, split="test", is_masking=True)
+        test_data_df.to_csv(os.path.join(os.getcwd(), folder_name + "\\out_files_masked\\" + folder_name + "-test.csv"),
+                            encoding='utf-8')
 
-        train_data_df = read_xml(folder_name, split="train")
-        train_data_df.to_csv(os.path.join(os.getcwd(), folder_name + "\\out_files\\" + folder_name + "-train.csv"), encoding='utf-8')
+        train_data_df = read_xml(folder_name, split="train", is_masking=True)
+        train_data_df.to_csv(os.path.join(os.getcwd(), folder_name + "\\out_files_masked\\" + folder_name + "-train.csv"),
+                             encoding='utf-8')
