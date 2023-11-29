@@ -12,6 +12,7 @@ def create_all_entity_pairs(all_entity_list):
             pairs.append([entity1, entity2])
     return pairs
 
+
 def get_entity_offsets(entity_name_offset_dict, e_name):
     e_offsets = []
     offset_list = entity_name_offset_dict[e_name].split(",")
@@ -22,8 +23,8 @@ def get_entity_offsets(entity_name_offset_dict, e_name):
         entity_name_offset_dict[e_name].split("-")
     return e_offsets
 
-def tag_sentence_with_protein(passage, e1_offset_list, e2_offset_list, e1_name, e2_name):
 
+def tag_sentence_with_protein(passage, e1_offset_list, e2_offset_list, e1_name, e2_name):
     FIRST_E1 = True
     if int(e1_offset_list[0][0]) > int(e2_offset_list[0][0]):
         FIRST_E1 = False
@@ -39,7 +40,8 @@ def tag_sentence_with_protein(passage, e1_offset_list, e2_offset_list, e1_name, 
         for e2_offset in e2_offset_list:
             try:
                 e2_offset = [int(e2_offset[0]) + chars_to_update, int(e2_offset[1]) + chars_to_update]
-                sentence_text = sentence_text[:e2_offset[0]] + "[PROTEIN2] " + e2_name + " [/PROTEIN2]" + sentence_text[e2_offset[1]:]
+                sentence_text = sentence_text[:e2_offset[0]] + "[PROTEIN2] " + e2_name + " [/PROTEIN2]" + sentence_text[
+                                                                                                          e2_offset[1]:]
                 chars_to_update += len("[PROTEIN2] ") + len(" [/PROTEIN2]")
             except IndexError:
                 print()
@@ -52,14 +54,14 @@ def tag_sentence_with_protein(passage, e1_offset_list, e2_offset_list, e1_name, 
             chars_to_update += len("[PROTEIN2] ") + len(" [/PROTEIN2]")
         for e1_offset in e1_offset_list:
             e1_offset = [int(e1_offset[0]) + chars_to_update, int(e1_offset[1]) + chars_to_update]
-            sentence_text = sentence_text[:int(e1_offset[0])] + "[PROTEIN1] " + e1_name + " [/PROTEIN1]" + sentence_text[int(
+            sentence_text = sentence_text[
+                            :int(e1_offset[0])] + "[PROTEIN1] " + e1_name + " [/PROTEIN1]" + sentence_text[int(
                 e1_offset[1]):]
             chars_to_update += len("[PROTEIN1] ") + len(" [/PROTEIN1]")
     return sentence_text
 
 
 def mask_sentence_with_protein(passage, e1_offset_list, e2_offset_list):
-
     UPDATE_LENGTH = len("PROTEIN1")
 
     FIRST_E1 = True
@@ -98,7 +100,7 @@ def mask_sentence_with_protein(passage, e1_offset_list, e2_offset_list):
     return sentence_text
 
 
-def read_xml(folder_name, split, is_masking):
+def read_xml(folder_name, split, strategy_for_proteins):
     # Reading the data inside the xml
     file_name = folder_name + "-" + split + ".xml"
     file_path = os.path.join(os.getcwd(), folder_name + "\\" + file_name)
@@ -135,14 +137,16 @@ def read_xml(folder_name, split, is_masking):
                 # protein tagging
                 e1_offsets = get_entity_offsets(all_entities_name_offsets, e1_name)
                 e2_offsets = get_entity_offsets(all_entities_name_offsets, e2_name)
-                if is_masking:
+                if strategy_for_proteins == "masked":
                     tagged_sentence = mask_sentence_with_protein(passage=sentence.attrib["text"],
+                                                                 e1_offset_list=e1_offsets,
+                                                                 e2_offset_list=e2_offsets)
+                elif strategy_for_proteins == "tagged":
+                    tagged_sentence = tag_sentence_with_protein(passage=sentence.attrib["text"],
                                                                 e1_offset_list=e1_offsets,
-                                                                e2_offset_list=e2_offsets)
-                elif is_masking is False:
-                    tagged_sentence = tag_sentence_with_protein(passage=sentence.attrib["text"], e1_offset_list=e1_offsets,
-                                                                e2_offset_list=e2_offsets, e1_name=e1_name, e2_name=e2_name)
-                else: # when is_masking None, then leave the original sentence as it is, no masking nor tagging
+                                                                e2_offset_list=e2_offsets, e1_name=e1_name,
+                                                                e2_name=e2_name)
+                elif strategy_for_proteins == "original":  # no masking nor tagging
                     tagged_sentence = sentence.attrib["text"]
                 # save to df
                 df = df.append({'docId': doc.attrib["id"], 'isValid': True, 'passage': tagged_sentence,
@@ -159,13 +163,17 @@ def read_xml(folder_name, split, is_masking):
                 # protein tagging
                 e1_offsets = get_entity_offsets(all_entities_name_offsets, e1_name)
                 e2_offsets = get_entity_offsets(all_entities_name_offsets, e2_name)
-                if is_masking:
+                if strategy_for_proteins == "masked":
                     tagged_sentence = mask_sentence_with_protein(passage=sentence.attrib["text"],
+                                                                 e1_offset_list=e1_offsets,
+                                                                 e2_offset_list=e2_offsets)
+                elif strategy_for_proteins == "tagged":
+                    tagged_sentence = tag_sentence_with_protein(passage=sentence.attrib["text"],
                                                                 e1_offset_list=e1_offsets,
-                                                                e2_offset_list=e2_offsets)
-                else:
-                    tagged_sentence = tag_sentence_with_protein(passage=sentence.attrib["text"], e1_offset_list=e1_offsets,
-                                                                e2_offset_list=e2_offsets, e1_name=e1_name, e2_name=e2_name)
+                                                                e2_offset_list=e2_offsets, e1_name=e1_name,
+                                                                e2_name=e2_name)
+                elif strategy_for_proteins == "original":  # no masking nor tagging
+                    tagged_sentence = sentence.attrib["text"]
                 # save to df
                 df = df.append({'docId': doc.attrib["id"], 'isValid': False, 'passage': tagged_sentence,
                                 'passage_id': sentence.attrib["id"], 'e1': e1_name, 'e2': e2_name},
@@ -173,35 +181,22 @@ def read_xml(folder_name, split, is_masking):
     return df
 
 
-
 if __name__ == '__main__':
 
-    IS_MASKING = None  # True, False or None
+    strategy = "original"  # "masked", "tagged"
 
     input_file_list = ["LLL", "IEPA", "HPRD50", "BIOINFER", "AIMED"]
-
-    if IS_MASKING:
-        file_name_suffix = "masked"
-    elif IS_MASKING is False:
-        file_name_suffix = "tagged"
-    else: #None
-        file_name_suffix = "original"
-
-
-
-
     # Create files
     for dataset_name in input_file_list:
-        datase_dir = os.path.join(os.getcwd(), dataset_name + "\\out_files_" + file_name_suffix)
+        datase_dir = os.path.join(os.getcwd(), dataset_name + "\\out_files_" + strategy)
         # Create dir if not exists
         if not os.path.exists(datase_dir):
             os.makedirs(datase_dir)
-        test_data_df = read_xml(dataset_name, split="test", is_masking=IS_MASKING)
+        test_data_df = read_xml(dataset_name, split="test", strategy_for_proteins=strategy)
         test_data_df.to_csv(os.path.join(datase_dir + "\\" + dataset_name + "-test.csv"),
                             encoding='utf-8')
 
-        train_data_df = read_xml(dataset_name, split="train", is_masking=True)
+        train_data_df = read_xml(dataset_name, split="train", strategy_for_proteins=strategy)
         train_data_df.to_csv(
             os.path.join(datase_dir + "\\" + dataset_name + "-train.csv"),
             encoding='utf-8')
-
