@@ -58,7 +58,7 @@ def tag_sentence_with_protein(passage, e1_offset_list, e2_offset_list, e1_name, 
     return sentence_text
 
 
-def mask_sentence_with_protein(passage, e1_offset_list, e2_offset_list, e1_name, e2_name):
+def mask_sentence_with_protein(passage, e1_offset_list, e2_offset_list):
 
     UPDATE_LENGTH = len("PROTEIN1")
 
@@ -138,14 +138,15 @@ def read_xml(folder_name, split, is_masking):
                 if is_masking:
                     tagged_sentence = mask_sentence_with_protein(passage=sentence.attrib["text"],
                                                                 e1_offset_list=e1_offsets,
-                                                                e2_offset_list=e2_offsets, e1_name=e1_name,
-                                                                e2_name=e2_name)
-                else:
+                                                                e2_offset_list=e2_offsets)
+                elif is_masking is False:
                     tagged_sentence = tag_sentence_with_protein(passage=sentence.attrib["text"], e1_offset_list=e1_offsets,
                                                                 e2_offset_list=e2_offsets, e1_name=e1_name, e2_name=e2_name)
+                else: # when is_masking None, then leave the original sentence as it is, no masking nor tagging
+                    tagged_sentence = sentence.attrib["text"]
                 # save to df
                 df = df.append({'docId': doc.attrib["id"], 'isValid': True, 'passage': tagged_sentence,
-                                'passage_id': sentence.attrib["id"]},
+                                'passage_id': sentence.attrib["id"], 'e1': e1_name, 'e2': e2_name},
                                ignore_index=True)
 
             # get negative interaction pairs
@@ -161,14 +162,13 @@ def read_xml(folder_name, split, is_masking):
                 if is_masking:
                     tagged_sentence = mask_sentence_with_protein(passage=sentence.attrib["text"],
                                                                 e1_offset_list=e1_offsets,
-                                                                e2_offset_list=e2_offsets, e1_name=e1_name,
-                                                                e2_name=e2_name)
+                                                                e2_offset_list=e2_offsets)
                 else:
                     tagged_sentence = tag_sentence_with_protein(passage=sentence.attrib["text"], e1_offset_list=e1_offsets,
                                                                 e2_offset_list=e2_offsets, e1_name=e1_name, e2_name=e2_name)
                 # save to df
                 df = df.append({'docId': doc.attrib["id"], 'isValid': False, 'passage': tagged_sentence,
-                                'passage_id': sentence.attrib["id"]},
+                                'passage_id': sentence.attrib["id"], 'e1': e1_name, 'e2': e2_name},
                                ignore_index=True)
     return df
 
@@ -176,25 +176,32 @@ def read_xml(folder_name, split, is_masking):
 
 if __name__ == '__main__':
 
-    in_data_dir = 'files'
-    masked_out_data_dir = 'files\\out_files_masked'
-    tagged_out_data_dir = 'files\\out_files'
+    IS_MASKING = None  # True, False or None
 
-    input_file_list = ["LLL"]  # , "IEPA","HPRD50", "BIOINFER", "AIMED"
-    # # Create files for Protein Tagged sentences
-    # for folder_name in input_file_list:
-    #     test_data_df = read_xml(folder_name, split="test", is_masking=False)
-    #     test_data_df.to_csv(os.path.join(os.getcwd(), folder_name + "\\out_files\\" + folder_name + "-test.csv"), encoding='utf-8')
-    #
-    #     train_data_df = read_xml(folder_name, split="train", is_masking=False)
-    #     train_data_df.to_csv(os.path.join(os.getcwd(), folder_name + "\\out_files\\" + folder_name + "-train.csv"), encoding='utf-8')
+    input_file_list = ["LLL", "IEPA", "HPRD50", "BIOINFER", "AIMED"]
 
-    # Create files for Protein Masked sentences
-    for folder_name in input_file_list:
-        test_data_df = read_xml(folder_name, split="test", is_masking=True)
-        test_data_df.to_csv(os.path.join(os.getcwd(), folder_name + "\\out_files_masked\\" + folder_name + "-test.csv"),
+    if IS_MASKING:
+        file_name_suffix = "masked"
+    elif IS_MASKING is False:
+        file_name_suffix = "tagged"
+    else: #None
+        file_name_suffix = "original"
+
+
+
+
+    # Create files
+    for dataset_name in input_file_list:
+        datase_dir = os.path.join(os.getcwd(), dataset_name + "\\out_files_" + file_name_suffix)
+        # Create dir if not exists
+        if not os.path.exists(datase_dir):
+            os.makedirs(datase_dir)
+        test_data_df = read_xml(dataset_name, split="test", is_masking=IS_MASKING)
+        test_data_df.to_csv(os.path.join(datase_dir + "\\" + dataset_name + "-test.csv"),
                             encoding='utf-8')
 
-        train_data_df = read_xml(folder_name, split="train", is_masking=True)
-        train_data_df.to_csv(os.path.join(os.getcwd(), folder_name + "\\out_files_masked\\" + folder_name + "-train.csv"),
-                             encoding='utf-8')
+        train_data_df = read_xml(dataset_name, split="train", is_masking=True)
+        train_data_df.to_csv(
+            os.path.join(datase_dir + "\\" + dataset_name + "-train.csv"),
+            encoding='utf-8')
+
