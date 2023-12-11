@@ -10,7 +10,7 @@ def load_and_test(dataset, split):
 if __name__ == '__main__':
     train_df = pd.read_csv("out_files/HPRD50-train.csv")
     #val_df = pd.read_csv("out_files/HPRD50-val.csv")
-    test_df = pd.read_csv("out_files/HPRD50-test.csv")
+    test_df = pd.read_csv("out_files/HPRD50-test-tagged.csv")
 
     all_data = {
     "train" : train_df.to_dict(orient="records"),
