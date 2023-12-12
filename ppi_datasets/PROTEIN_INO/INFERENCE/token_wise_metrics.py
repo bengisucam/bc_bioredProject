@@ -108,7 +108,8 @@ if __name__ == '__main__':
     # read_from_txt(pth_to_file)
 
     #pth_to_file = r"C:\Users\B3LAB\Desktop\thesis\Llama\llama2\inference_results\zero-shot\zero_shot_inference_13b_chat.xlsx"
-    pth_to_file = r"C:\Users\B3LAB\Desktop\thesis\Llama\llama2\finetune_results\finetuned_13b_chat_4.xlsx"
+    #pth_to_file = r"C:\Users\B3LAB\Desktop\thesis\Llama\llama2\finetune_results\finetuned_13b_chat_4.xlsx"
+    pth_to_file = r"C:\Users\B3LAB\Desktop\thesis\Llama\llama2\inference_results\few-shot\few_shot_inference_70b_chat_P3.xlsx"
     df = read_from_excel(pth_to_file)
     replaced_df = df.replace({np.nan: None})
 
@@ -153,5 +154,6 @@ if __name__ == '__main__':
 
 
     #pth_to_output_file = r"C:\Users\B3LAB\Desktop\thesis\Llama\llama2\inference_results\zero-shot\metric-13b-chat.xlsx"
-    pth_to_output_file = r"C:\Users\B3LAB\Desktop\thesis\Llama\llama2\finetune_results\metric-13b-chat-4.xlsx"
+    #pth_to_output_file = r"C:\Users\B3LAB\Desktop\thesis\Llama\llama2\finetune_results\metric-13b-chat-4.xlsx"
+    pth_to_output_file = r"C:\Users\B3LAB\Desktop\thesis\Llama\llama2\inference_results\few-shot\metric-70b-chat-P3.xlsx"
     df.to_excel(pth_to_output_file)
