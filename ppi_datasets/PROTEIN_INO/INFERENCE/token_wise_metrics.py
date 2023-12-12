@@ -25,6 +25,7 @@ def read_from_excel(file_path):
 
 
 def lemmatize_word(word):
+    lemmatizer = WordNetLemmatizer()
     lemma = lemmatizer.lemmatize(word, "v")
     return lemma
 
@@ -43,21 +44,46 @@ def lemmatize_word(word):
 #
 #     return precision, recall
 
-
-def calculate_lemmas_metric(predicted_tokens, actual_tokens):
+def get_lemma(predicted_tokens, actual_tokens):
     # Convert tokens to lowercase
     predicted_tokens = [
-        [lemmatize_word(token.lower()) if token is not None else "NoNe" for token in sublist]
+        [token.lower() if token is not None else "NoNe" for token in sublist]
         for sublist in predicted_tokens
     ]
     actual_tokens = [
-        [lemmatize_word(token.lower()) for token in sublist]
+        [token.lower() for token in sublist]
         for sublist in actual_tokens
     ]
 
-    predicted = [x[0].split(",") for x in predicted_tokens]
-    actual = [x[0].split(",") for x in actual_tokens]
+    predicted = []
+    actual = []
 
+    for x in actual_tokens:
+        values = []
+        for y in [x[0].split(",")]:
+            if len(y) > 1:
+                for z in y:
+                    values.append(lemmatize_word(z.strip()))
+            else:
+                values.append(lemmatize_word(y[0]))
+        actual.append(values)
+
+    for x in predicted_tokens:
+        values = []
+        for y in [x[0].split(",")]:
+            if len(y) > 1:
+                for z in y:
+                    values.append(lemmatize_word(z.strip()))
+            else:
+                values.append(lemmatize_word(y[0]))
+        predicted.append(values)
+
+
+
+    return predicted, actual
+
+
+def calculate_lemmas_metric(predicted, actual):
     scores = []
     for i in range(len(actual)):
         pred_sublist = predicted[i]
@@ -81,23 +107,51 @@ if __name__ == '__main__':
     # pth_to_file = r"C:\Users\B3LAB\Desktop\thesis\Llama\llama2\inference_results\few-shot\lll_few_shot_inference_7B_chat_portion1.log"
     # read_from_txt(pth_to_file)
 
-    pth_to_file = r"C:\Users\B3LAB\Desktop\thesis\Llama\llama2\inference_results\zero-shot\zero_shot_inference_70b_chat.xlsx"
+    #pth_to_file = r"C:\Users\B3LAB\Desktop\thesis\Llama\llama2\inference_results\zero-shot\zero_shot_inference_13b_chat.xlsx"
+    pth_to_file = r"C:\Users\B3LAB\Desktop\thesis\Llama\llama2\finetune_results\finetuned_13b_chat_4.xlsx"
     df = read_from_excel(pth_to_file)
     replaced_df = df.replace({np.nan: None})
-    print(df["Predicted"])
 
     lemmatizer = WordNetLemmatizer()
     # stemmer = PorterStemmer()
 
     list_of_words = ["changing", "changed", "changes", "activated", "activates", "depends",
-                     "dogs", "regulon", "interaction", "interacting", "controlled", "inhibits"]
+                     "dogs", "regulon", "interaction", "interacting", "controlled", "inhibits", "drives"]
 
     list_of_lemmas = [lemmatizer.lemmatize(i, "v") for i in list_of_words]
-    # list_of_stems = [stemmer.stem(i) for i in list_of_words]
-    # print(list_of_lemmas)
+    #list_of_stems = [stemmer.stem(i) for i in list_of_words]
+    print(list_of_lemmas)
 
     predicted_tokens = [[value] for value in replaced_df["Predicted"]]
     actual_tokens = [[value] for value in replaced_df["True Label"]]
-    scores_list = calculate_lemmas_metric(predicted_tokens, actual_tokens)
-    for i in range(len(scores_list)):
-        df.iloc[i]["Predicted"]
+
+    predicted_lemmas, actual_lemmas = get_lemma(predicted_tokens, actual_tokens)
+
+    scores_list = calculate_lemmas_metric(predicted_lemmas, actual_lemmas)
+
+    pred_lemma_column = [predicted_lemmas[i] for i in range(len(scores_list))]
+    act_lemma_column = [actual_lemmas[i] for i in range(len(scores_list))]
+    precision_column = [scores_list[i]["precision"] for i in range(len(scores_list))]
+    recall_column = [scores_list[i]["recall"] for i in range(len(scores_list))]
+    f1_column = [scores_list[i]["f1"] for i in range(len(scores_list))]
+
+    df["Predicted Lemma"] = pred_lemma_column
+    df["True Lemma"] = act_lemma_column
+    df["Precision"] = precision_column
+    df["Recall"] = recall_column
+    df["F1"] = f1_column
+
+    ave_precision = df["Precision"].mean()
+    ave_recall = df["Recall"].mean()
+    ave_f1 = df["F1"].mean()
+
+    df.loc[-1] = ["Average Scores", None, None, None, None, ave_precision, ave_recall, ave_f1]
+
+    print("Average Precision: ", ave_precision)
+    print("Average Recall: ", ave_recall)
+    print("Average F1: ", ave_f1)
+
+
+    #pth_to_output_file = r"C:\Users\B3LAB\Desktop\thesis\Llama\llama2\inference_results\zero-shot\metric-13b-chat.xlsx"
+    pth_to_output_file = r"C:\Users\B3LAB\Desktop\thesis\Llama\llama2\finetune_results\metric-13b-chat-4.xlsx"
+    df.to_excel(pth_to_output_file)
