@@ -1,4 +1,4 @@
-,docId,isValid,Sentence,passage_id,e1,e2,predicted_ino_keywords,true_ino_keywords
+,docId,isValid,Sentence,passage_id,e1,e2,predicted_ino_keywords_70b,true_ino_keywords
 8,HPRD50.d6,True,Immunoprecipitation experiments revealed a physical association of Jak2 with p125FAK via STAT3 in vivo,HPRD50.d6.s4,Jak2,STAT3,association,
 9,HPRD50.d10,True,Cutting edge: CD43 functions as a T cell counterreceptor for the macrophage adhesion receptor sialoadhesin (Siglec-1),HPRD50.d10.s0,CD43,sialoadhesin,functions as a counterreceptor for,
 10,HPRD50.d10,True,Cutting edge: CD43 functions as a T cell counterreceptor for the macrophage adhesion receptor sialoadhesin (Siglec-1),HPRD50.d10.s0,CD43,Siglec-1,functions as a counterreceptor for,
