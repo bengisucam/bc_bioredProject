@@ -2,28 +2,31 @@
 import pandas as pd
 import json
 from datasets import load_dataset
+from peft import LoraConfig
+import os
 
 def load_and_test(dataset, split):
     ds = load_dataset(dataset)
     return ds.head()
 
 if __name__ == '__main__':
-    train_df = pd.read_csv("out_files/HPRD50-train.csv")
-    #val_df = pd.read_csv("out_files/HPRD50-val.csv")
-    test_df = pd.read_csv("out_files/HPRD50-test-tagged.csv")
+    print(os.getcwd())
+    train_df = pd.read_csv("./out_files_masked/HPRD50-train.csv")
+    # val_df = pd.read_csv("LLL_with_INO/out_files_protein_tagged_byhand/LLL-val.csv")
+    test_df = pd.read_csv("./out_files_masked/HPRD50-test.csv")
 
     all_data = {
     "train" : train_df.to_dict(orient="records"),
     "test" : test_df.to_dict(orient="records"),
-   # "val" : val_df.to_dict(orient="records")
+    #"val" : val_df.to_dict(orient="records")
     }
 
     for split in all_data:
-        f_name = "out_hf_files_tagged/" + split + ".jsonl"
+        f_name = "./out_files_masked_hf/" + split + ".jsonl"
         with open(f_name, "w") as f:
             for line in all_data[split]:
                 f.write(json.dumps(line) + "\n")
         f.close()
 
-    # test_head = load_and_test("bengisucam/LLL_INO-tagged", split="test")
+    # test_head = load_and_test("bengisucam/HPRD50_only_true", split="test")
     # print(test_head)

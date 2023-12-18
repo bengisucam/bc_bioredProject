@@ -20,7 +20,7 @@ if __name__ == '__main__':
     }
 
     for split in all_data:
-        f_name = "HPRD50/llama2-70b-predicted-ino/out_hf_files/" + split + ".jsonl"
+        f_name = "HPRD50/llama2-70b-predicted_words-ino/out_hf_files/" + split + ".jsonl"
         with open(f_name, "w") as f:
             for line in all_data[split]:
                 f.write(json.dumps(line) + "\n")

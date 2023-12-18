@@ -183,7 +183,7 @@ def read_xml(folder_name, split, strategy_for_proteins):
 
 if __name__ == '__main__':
 
-    strategy = "original"  # "masked", "tagged"
+    strategy = "original"  # "masked", "tagged", "original"
 
     input_file_list = ["LLL", "IEPA", "HPRD50", "BIOINFER", "AIMED"]
     # Create files
