@@ -11,7 +11,7 @@ def load_and_test(dataset, split):
 if __name__ == '__main__':
     # train_df = pd.read_csv("LLL_with_INO/out_files_protein_tagged_byhand/LLL-train.csv")
     # val_df = pd.read_csv("LLL_with_INO/out_files_protein_tagged_byhand/LLL-val.csv")
-    test_df = pd.read_csv("HPRD50/llama2-70b-predicted-ino/HPRD50-test-tagged.csv")
+    test_df = pd.read_csv("HPRD50/llama2-70b-model-predictions/HPRD50-test-tagged.csv")
 
     all_data = {
     # "train" : train_df.to_dict(orient="records"),
